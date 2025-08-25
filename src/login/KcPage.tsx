@@ -4,11 +4,14 @@ import type { KcContext } from "./KcContext";
 import { useI18n } from "./i18n";
 import DefaultPage from "keycloakify/login/DefaultPage";
 import Template from "keycloakify/login/Template";
+import RequestUserPhoneNumber from "./pages/RequestUserPhoneNumber";
+import "../styles/index.css";
 const UserProfileFormFields = lazy(
     () => import("keycloakify/login/UserProfileFormFields")
 );
 
 const doMakeUserConfirmPassword = true;
+const Login = lazy(() => import("./pages/Login"));
 
 export default function KcPage(props: { kcContext: KcContext }) {
     const { kcContext } = props;
@@ -19,13 +22,28 @@ export default function KcPage(props: { kcContext: KcContext }) {
         <Suspense>
             {(() => {
                 switch (kcContext.pageId) {
+                   case "login.ftl": return (
+                       <Login
+                           {...{ kcContext, i18n, classes }}
+                           Template={Template}
+                           doUseDefaultCss={false}
+                       />
+                   );
+                   case "request-user-phone-number.ftl": return (
+                       <RequestUserPhoneNumber
+                           {...{ kcContext, i18n, classes }}
+                           Template={Template as any}
+                           doUseDefaultCss={false}
+                       />
+                   );
+                        
                     default:
                         return (
                             <DefaultPage
-                                kcContext={kcContext}
+                                kcContext={kcContext as any}
                                 i18n={i18n}
                                 classes={classes}
-                                Template={Template}
+                                Template={Template as any}
                                 doUseDefaultCss={true}
                                 UserProfileFormFields={UserProfileFormFields}
                                 doMakeUserConfirmPassword={doMakeUserConfirmPassword}

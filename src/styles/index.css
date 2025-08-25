@@ -1,0 +1,19 @@
+@import "./tailwind.css";
+
+
+
+/* Hide Keycloak default language dropdown when opted-in via bodyClassName */
+.no-kc-locale #kc-locale {
+    display: none !important;
+}
+
+/* Hide Keycloak realm header ("MYREALM") when desired */
+.no-kc-header #kc-header {
+    display: none !important;
+}
+
+/* Hide attempted username block rendered by Template */
+.no-kc-username #kc-username {
+    display: none !important;
+}
+

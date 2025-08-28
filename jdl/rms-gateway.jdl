@@ -1,0 +1,18 @@
+application {
+  config {
+    baseName rmsGw
+    applicationType gateway
+    packageName com.atparui.gw
+    authenticationType oauth2
+    clientFramework angular
+    databaseType sql
+    devDatabaseType postgresql
+    prodDatabaseType postgresql
+    buildTool maven
+    skipUserManagement true
+  }
+  
+  // Generate client-side entity UI in the gateway for these domain entities.
+  // Make sure to import this JDL together with the domain JDL so the entities are known.
+  entities Address, Organization, Restaurant, AppUser, AppRole, UserRoleMapping, RestaurantUserMapping, TableDetail, RestaurantTableDetailMapping, RestaurantMenu, MenuCategory, MenuItem, RestaurantOrder, OrderItem, RestaurantOrderTableDetailMapping, TableDetailWaiterMapping, UserAttendance, OrderDelivery, Payment, Reservation, Shift
+}

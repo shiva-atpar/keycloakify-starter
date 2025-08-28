@@ -1,0 +1,274 @@
+// Restaurant Management System - JDL
+// This JDL defines entities, enums, relationships, and global options
+// Generate with: jhipster jdl jdl/restaurant-management.jdl --force
+
+// ==================
+// Enumerations
+// ==================
+
+enum UserType { STAFF, CUSTOMER, ADMIN, OWNER }
+
+enum AppRoleType { ADMIN, MANAGER, CHEF, WAITER, CASHIER, DELIVERY, INVENTORY, HR }
+
+enum TableStatus { AVAILABLE, OCCUPIED, RESERVED, OUT_OF_SERVICE }
+
+enum OrderStatus { PENDING, CONFIRMED, PREPARING, READY, SERVED, CANCELLED, COMPLETED }
+
+enum OrderType { DINE_IN, TAKEAWAY, DELIVERY }
+
+enum DeliveryStatus { PENDING, ASSIGNED, PICKED_UP, IN_TRANSIT, DELIVERED, FAILED, CANCELLED }
+
+enum PaymentStatus { PENDING, AUTHORIZED, PAID, PARTIALLY_PAID, REFUNDED, FAILED, CANCELLED }
+
+enum PaymentMethod { CASH, CARD, UPI, WALLET, ONLINE, OTHER }
+
+enum AttendanceStatus { PRESENT, ABSENT, LATE, HALF_DAY, ON_LEAVE }
+
+enum ReservationStatus { REQUESTED, CONFIRMED, CANCELLED, SEATED, NO_SHOW, COMPLETED }
+
+enum ShiftType { MORNING, AFTERNOON, EVENING, NIGHT }
+
+// ==================
+// Core shared entities
+// ==================
+
+entity Address {
+  line1 String required minlength(3) maxlength(255),
+  line2 String maxlength(255),
+  city String required minlength(2) maxlength(120),
+  state String maxlength(120),
+  postalCode String required pattern(/^[A-Za-z0-9\-\s]{3,12}$/),
+  country String required minlength(2) maxlength(120),
+  latitude BigDecimal min(-90) max(90),
+  longitude BigDecimal min(-180) max(180),
+  phone String pattern(/^\+?[0-9]{7,15}$/),
+  email String pattern(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/),
+  isActive Boolean required
+}
+
+entity Organization {
+  name String required minlength(2) maxlength(140),
+  code String required unique pattern(/^[A-Z0-9_\-]+$/) minlength(2) maxlength(50),
+  phone String pattern(/^\+?[0-9]{7,15}$/),
+  email String pattern(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/),
+  isActive Boolean required
+}
+
+entity Restaurant {
+  name String required minlength(2) maxlength(140),
+  code String required unique pattern(/^[A-Z0-9_\-]+$/) minlength(2) maxlength(50),
+  description String maxlength(2000),
+  phone String pattern(/^\+?[0-9]{7,15}$/),
+  email String pattern(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/),
+  isActive Boolean required
+}
+
+// Application-level user profile (distinct from JHipster built-in User)
+entity AppUser {
+  firstName String required minlength(1) maxlength(100),
+  lastName String required minlength(1) maxlength(100),
+  email String required unique maxlength(254) pattern(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/),
+  phone String unique pattern(/^\+?[0-9]{7,15}$/),
+  userType UserType required,
+  isActive Boolean required
+}
+
+entity AppRole {
+  name String required unique minlength(2) maxlength(80) pattern(/^[A-Z0-9_\-]+$/),
+  roleType AppRoleType required,
+  description String maxlength(500),
+  isActive Boolean required
+}
+
+// Explicit mappings (use entities instead of implicit many-to-many join tables)
+entity UserRoleMapping {
+  effectiveFrom Instant,
+  effectiveTo Instant,
+  isActive Boolean required
+}
+
+entity RestaurantUserMapping {
+  effectiveFrom Instant,
+  effectiveTo Instant,
+  isActive Boolean required
+}
+
+entity TableDetail {
+  name String maxlength(100),
+  tableNumber String required maxlength(30),
+  capacity Integer required min(1) max(100),
+  status TableStatus required,
+  isActive Boolean required
+}
+
+entity RestaurantTableDetailMapping {
+  area String maxlength(100),
+  isActive Boolean required,
+  effectiveFrom Instant,
+  effectiveTo Instant
+}
+
+entity RestaurantMenu {
+  name String required minlength(2) maxlength(120),
+  description String maxlength(1000),
+  isActive Boolean required
+}
+
+entity MenuCategory {
+  name String required minlength(2) maxlength(120),
+  description String maxlength(1000),
+  sortOrder Integer min(0) max(9999),
+  isActive Boolean required
+}
+
+entity MenuItem {
+  name String required minlength(2) maxlength(160),
+  description String maxlength(2000),
+  sku String maxlength(64) pattern(/^[A-Z0-9_\-]+$/),
+  price BigDecimal required min(0),
+  taxPercent BigDecimal min(0) max(100),
+  isVegetarian Boolean,
+  isVegan Boolean,
+  isGlutenFree Boolean,
+  isActive Boolean required
+}
+
+entity RestaurantOrder {
+  orderNumber String required unique minlength(3) maxlength(40) pattern(/^[A-Z0-9_\-]+$/),
+  orderType OrderType required,
+  status OrderStatus required,
+  totalAmount BigDecimal required min(0),
+  taxAmount BigDecimal min(0),
+  discountAmount BigDecimal min(0),
+  netAmount BigDecimal required min(0),
+  placedAt Instant required,
+  closedAt Instant,
+  notes String maxlength(2000)
+}
+
+entity OrderItem {
+  quantity Integer required min(1) max(1000),
+  unitPrice BigDecimal required min(0),
+  totalPrice BigDecimal required min(0),
+  notes String maxlength(1000)
+}
+
+entity RestaurantOrderTableDetailMapping {
+  seatCount Integer min(1) max(100)
+}
+
+entity TableDetailWaiterMapping {
+  effectiveFrom Instant,
+  effectiveTo Instant,
+  isActive Boolean required
+}
+
+entity UserAttendance {
+  date LocalDate required,
+  status AttendanceStatus required,
+  checkIn Instant,
+  checkOut Instant,
+  notes String maxlength(1000)
+}
+
+entity OrderDelivery {
+  deliveryStatus DeliveryStatus required,
+  addressLine1 String required minlength(3) maxlength(255),
+  addressLine2 String maxlength(255),
+  city String required minlength(2) maxlength(120),
+  state String maxlength(120),
+  postalCode String required pattern(/^[A-Za-z0-9\-\s]{3,12}$/),
+  country String required minlength(2) maxlength(120),
+  contactName String maxlength(140),
+  contactPhone String pattern(/^\+?[0-9]{7,15}$/),
+  assignedAt Instant,
+  dispatchedAt Instant,
+  deliveredAt Instant,
+  failedAt Instant,
+  notes String maxlength(1000)
+}
+
+entity Payment {
+  paymentMethod PaymentMethod required,
+  amount BigDecimal required min(0),
+  status PaymentStatus required,
+  transactionId String maxlength(128) pattern(/^[A-Za-z0-9_\-]+$/),
+  paidAt Instant
+}
+
+entity Reservation {
+  reservationCode String required unique minlength(3) maxlength(40) pattern(/^[A-Z0-9_\-]+$/),
+  status ReservationStatus required,
+  reservedFrom Instant required,
+  reservedTo Instant required,
+  partySize Integer required min(1) max(100),
+  notes String maxlength(1000)
+}
+
+entity Shift {
+  name String required minlength(2) maxlength(80),
+  type ShiftType required,
+  startTime String required pattern(/^(?:[01]\d|2[0-3]):[0-5]\d$/),
+  endTime String required pattern(/^(?:[01]\d|2[0-3]):[0-5]\d$/),
+  isActive Boolean required
+}
+
+// ==================
+// Relationships
+// ==================
+
+relationship ManyToOne {
+  Organization{address} to Address,
+
+  Restaurant{organization(name) required} to Organization,
+  Restaurant{address} to Address,
+
+  RestaurantMenu{restaurant(code) required} to Restaurant,
+  MenuCategory{restaurantMenu(name) required} to RestaurantMenu,
+  MenuItem{menuCategory(name) required} to MenuCategory,
+
+  UserRoleMapping{appUser(email) required} to AppUser,
+  UserRoleMapping{appRole(name) required} to AppRole,
+  UserRoleMapping{organization(code)} to Organization,
+
+  RestaurantUserMapping{restaurant(code) required} to Restaurant,
+  RestaurantUserMapping{appUser(email) required} to AppUser,
+  RestaurantUserMapping{appRole(name)} to AppRole,
+
+  RestaurantTableDetailMapping{restaurant(code) required} to Restaurant,
+  RestaurantTableDetailMapping{tableDetail(tableNumber) required} to TableDetail,
+
+  RestaurantOrder{restaurant(code) required} to Restaurant,
+  RestaurantOrder{customer(email)} to AppUser,
+
+  OrderItem{restaurantOrder(orderNumber) required} to RestaurantOrder,
+  OrderItem{menuItem(name) required} to MenuItem,
+
+  RestaurantOrderTableDetailMapping{restaurantOrder(orderNumber) required} to RestaurantOrder,
+  RestaurantOrderTableDetailMapping{tableDetail(tableNumber) required} to TableDetail,
+
+  TableDetailWaiterMapping{tableDetail(tableNumber) required} to TableDetail,
+  TableDetailWaiterMapping{waiter(email) required} to AppUser,
+
+  UserAttendance{appUser(email) required} to AppUser,
+  UserAttendance{restaurant(code) required} to Restaurant,
+  UserAttendance{shift(name)} to Shift,
+
+  OrderDelivery{restaurantOrder(orderNumber) required} to RestaurantOrder,
+  Payment{restaurantOrder(orderNumber) required} to RestaurantOrder,
+
+  Reservation{restaurant(code) required} to Restaurant,
+  Reservation{tableDetail(tableNumber)} to TableDetail,
+  Reservation{customer(email) required} to AppUser,
+
+  Shift{restaurant(code) required} to Restaurant
+}
+
+// ==================
+// Global options
+// ==================
+
+dto * with mapstruct
+service * with serviceImpl
+paginate * with pagination
+filter *
